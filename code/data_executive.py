@@ -7,8 +7,8 @@ random.seed(42)
 # -----------------------------
 # Config
 # -----------------------------
-START_DATE = date(2025, 1, 1)
-END_DATE = date(2025, 12, 31)
+START_DATE = date(2024, 1, 1)
+END_DATE = date(2026, 3, 25)
 OUTPUT_FILE = "executive_performance_dummy_data.csv"
 
 channels = ["Direct", "Google Ads", "Amazon", "Distributor"]

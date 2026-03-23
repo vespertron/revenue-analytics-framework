@@ -7,8 +7,8 @@ random.seed(73)
 # ---------------------------------
 # Config
 # ---------------------------------
-START_DATE = date(2025, 1, 1)
-END_DATE = date(2025, 12, 31)
+START_DATE = date(2024, 1, 1)
+END_DATE = date(2026, 3, 25)
 OUTPUT_FILE = "marketing_roi_dummy_data.csv"
 
 campaigns = [
@@ -220,4 +220,12 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
     writer.writeheader()
     writer.writerows(rows)
 
-print(f"Wrote {len(rows):,} rows to {OUTPUT_FILE}")
+
+# ---------------------------------
+# Debug / sanity checks
+# ---------------------------------
+print("Total rows:", len(rows))
+print("Days generated (rows / campaigns):", len(rows) / len(campaigns))
+
+print("First date:", rows[0]["date"])
+print("Last date:", rows[-1]["date"])
