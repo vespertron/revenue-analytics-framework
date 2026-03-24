@@ -1,218 +1,201 @@
 import csv
 import random
-from datetime import date, timedelta
+from datetime import date
 
-random.seed(73)
+random.seed(42)
 
-# ---------------------------------
-# Config
-# ---------------------------------
-START_DATE = date(2024, 1, 1)
-END_DATE = date(2026, 3, 25)
-OUTPUT_FILE = "marketing_roi_dummy_data.csv"
+OUTPUT_FILE = "gold_executive_performance.csv"
 
-campaigns = [
-    {"campaign": "Google Brand Search", "channel": "Google Ads", "intent": "Brand", "region": "National"},
-    {"campaign": "Google Generic Safety Labels", "channel": "Google Ads", "intent": "Generic", "region": "National"},
-    {"campaign": "Google Floor Marking", "channel": "Google Ads", "intent": "Product", "region": "West"},
-    {"campaign": "Google Custom Signs", "channel": "Google Ads", "intent": "Product", "region": "East"},
-    {"campaign": "Google LabelTac Printers", "channel": "Google Ads", "intent": "Product", "region": "National"},
-    {"campaign": "Amazon Sponsored Products", "channel": "Amazon", "intent": "Marketplace", "region": "National"},
-    {"campaign": "Amazon Sponsored Brands", "channel": "Amazon", "intent": "Marketplace", "region": "National"},
-    {"campaign": "Retargeting - Display", "channel": "Google Display", "intent": "Retargeting", "region": "National"},
-    {"campaign": "Remarketing - Cart Abandon", "channel": "Google Display", "intent": "Retargeting", "region": "National"},
-    {"campaign": "SMB Search - West", "channel": "Google Ads", "intent": "SMB", "region": "West"},
-    {"campaign": "Enterprise Search - East", "channel": "Google Ads", "intent": "Enterprise", "region": "East"},
-    {"campaign": "Promo - Starter Kits", "channel": "Google Ads", "intent": "Promo", "region": "Central"},
+months = [
+    (2025, 1), (2025, 2), (2025, 3), (2025, 4), (2025, 5), (2025, 6),
+    (2025, 7), (2025, 8), (2025, 9), (2025, 10), (2025, 11), (2025, 12),
+    (2026, 1), (2026, 2), (2026, 3),
 ]
 
-base_spend = {
-    "Google Brand Search": 650,
-    "Google Generic Safety Labels": 1200,
-    "Google Floor Marking": 500,
-    "Google Custom Signs": 450,
-    "Google LabelTac Printers": 900,
-    "Amazon Sponsored Products": 850,
-    "Amazon Sponsored Brands": 450,
-    "Retargeting - Display": 300,
-    "Remarketing - Cart Abandon": 260,
-    "SMB Search - West": 420,
-    "Enterprise Search - East": 520,
-    "Promo - Starter Kits": 280,
+channels = ["Direct", "Google Ads", "Amazon", "Distributor"]
+product_categories = ["Label Printers", "Label Supply", "Floor Marking", "Custom Signs", "Safety Accessories"]
+regions = ["West", "Central", "East", "South"]
+customer_segments = ["Enterprise", "SMB", "Retail-like B2B"]
+
+channel_weights = {
+    "Direct": 1.00,
+    "Google Ads": 1.15,
+    "Amazon": 0.95,
+    "Distributor": 0.70,
 }
 
-# Relative performance tendencies
-campaign_quality = {
-    "Google Brand Search": 1.45,
-    "Google Generic Safety Labels": 0.82,
-    "Google Floor Marking": 1.08,
-    "Google Custom Signs": 0.96,
-    "Google LabelTac Printers": 1.18,
-    "Amazon Sponsored Products": 1.05,
-    "Amazon Sponsored Brands": 0.88,
-    "Retargeting - Display": 1.30,
-    "Remarketing - Cart Abandon": 1.52,
-    "SMB Search - West": 1.12,
-    "Enterprise Search - East": 0.91,
-    "Promo - Starter Kits": 0.78,
+category_weights = {
+    "Label Printers": 1.20,
+    "Label Supply": 1.35,
+    "Floor Marking": 0.95,
+    "Custom Signs": 0.85,
+    "Safety Accessories": 0.65,
 }
 
-# ---------------------------------
-# Helpers
-# ---------------------------------
-def daterange(start_dt, end_dt):
-    current = start_dt
-    while current <= end_dt:
-        yield current
-        current += timedelta(days=1)
+segment_weights = {
+    "Enterprise": 1.10,
+    "SMB": 1.00,
+    "Retail-like B2B": 0.80,
+}
 
-def month_factor(dt: date) -> float:
-    return {
-        1: 0.93, 2: 0.95, 3: 0.98, 4: 1.00, 5: 1.03, 6: 1.05,
-        7: 0.97, 8: 0.98, 9: 1.02, 10: 1.09, 11: 1.16, 12: 1.13
-    }[dt.month]
+region_weights = {
+    "West": 1.05,
+    "Central": 0.95,
+    "East": 1.00,
+    "South": 0.92,
+}
 
-def weekday_factor(dt: date) -> float:
-    return {0: 1.02, 1: 1.03, 2: 1.01, 3: 1.00, 4: 1.05, 5: 0.84, 6: 0.73}[dt.weekday()]
+month_seasonality = {
+    1: 0.94, 2: 0.97, 3: 1.00, 4: 1.02, 5: 1.05, 6: 1.06,
+    7: 0.98, 8: 0.99, 9: 1.03, 10: 1.10, 11: 1.17, 12: 1.14,
+}
 
-def campaign_type(campaign_name: str) -> str:
-    if "Amazon" in campaign_name:
-        return "Marketplace"
-    if "Display" in campaign_name or "Remarketing" in campaign_name:
-        return "Display / Retargeting"
-    return "Search"
+growth_drift = {
+    2025: 1.00,
+    2026: 1.04,
+}
 
-def avg_order_value(campaign_name: str) -> float:
-    if "Printers" in campaign_name or "Enterprise" in campaign_name:
-        return random.uniform(850, 1850)
-    if "Custom Signs" in campaign_name:
-        return random.uniform(140, 340)
-    if "Floor Marking" in campaign_name:
-        return random.uniform(90, 230)
-    if "Starter Kits" in campaign_name:
-        return random.uniform(75, 120)
-    if "Brand" in campaign_name or "Generic" in campaign_name:
-        return random.uniform(140, 520)
-    if "Amazon" in campaign_name:
-        return random.uniform(65, 240)
-    return random.uniform(110, 380)
+margin_profiles = {
+    "Label Printers": 0.46,
+    "Label Supply": 0.61,
+    "Floor Marking": 0.54,
+    "Custom Signs": 0.48,
+    "Safety Accessories": 0.57,
+}
 
-def target_segment(intent: str) -> str:
-    if intent == "Enterprise":
-        return "Enterprise"
-    if intent == "SMB":
-        return "SMB"
-    if intent == "Marketplace":
-        return "Retail-like B2B"
-    return random.choice(["SMB", "Retail-like B2B", "Enterprise"])
+ad_spend_rates = {
+    "Direct": 0.03,
+    "Google Ads": 0.16,
+    "Amazon": 0.10,
+    "Distributor": 0.01,
+}
 
-def recommendation(roas, spend, conv_rate):
-    if roas >= 4.0 and spend >= 700:
-        return "Scale budget"
-    if roas >= 4.0 and spend < 700:
-        return "Test expansion"
-    if roas < 2.0 and spend >= 700:
-        return "Reduce / optimize"
-    if conv_rate < 0.02 and spend >= 400:
-        return "Fix funnel / landing page"
-    if 2.0 <= roas < 4.0:
-        return "Monitor / refine"
-    return "Low priority"
+base_orders = {
+    "Label Printers": 75,
+    "Label Supply": 240,
+    "Floor Marking": 110,
+    "Custom Signs": 80,
+    "Safety Accessories": 125,
+}
 
-# ---------------------------------
-# Generate rows
-# ---------------------------------
+base_aov = {
+    "Label Printers": 1850,
+    "Label Supply": 145,
+    "Floor Marking": 210,
+    "Custom Signs": 290,
+    "Safety Accessories": 95,
+}
+
+def month_name(month_num: int) -> str:
+    return date(2000, month_num, 1).strftime("%b")
+
+def quarter(month_num: int) -> str:
+    return f"Q{((month_num - 1) // 3) + 1}"
+
 rows = []
 
-for dt in daterange(START_DATE, END_DATE):
-    season = month_factor(dt) * weekday_factor(dt)
+# Build current-period values first
+for year, month_num in months:
+    for channel in channels:
+        for category in product_categories:
+            for region in regions:
+                for segment in customer_segments:
+                    orders = int(
+                        base_orders[category]
+                        * channel_weights[channel]
+                        * category_weights[category]
+                        * segment_weights[segment]
+                        * region_weights[region]
+                        * month_seasonality[month_num]
+                        * growth_drift[year]
+                        * random.uniform(0.82, 1.18)
+                    )
+                    orders = max(8, orders)
 
-    for c in campaigns:
-        cname = c["campaign"]
-        quality = campaign_quality[cname]
+                    aov = base_aov[category] * random.uniform(0.93, 1.08)
+                    revenue = round(orders * aov, 2)
 
-        spend = base_spend[cname] * season * random.uniform(0.82, 1.22)
+                    gross_margin_pct = margin_profiles[category] * random.uniform(0.95, 1.05)
+                    gross_margin_pct = max(0.20, min(0.75, gross_margin_pct))
+                    gross_profit = round(revenue * gross_margin_pct, 2)
+                    cogs = round(revenue - gross_profit, 2)
 
-        # marketing funnel behavior
-        impressions = int(spend * random.uniform(95, 150))
-        ctr = random.uniform(0.012, 0.085)
-        clicks = max(1, int(impressions * ctr))
+                    avg_units_per_order = {
+                        "Label Printers": 1.2,
+                        "Label Supply": 4.8,
+                        "Floor Marking": 2.7,
+                        "Custom Signs": 2.0,
+                        "Safety Accessories": 2.9,
+                    }[category]
+                    units = int(orders * avg_units_per_order * random.uniform(0.90, 1.12))
 
-        cpc = spend / clicks if clicks else 0
-        landing_conv = random.uniform(0.018, 0.095) * quality
-        leads = max(0, int(clicks * landing_conv))
+                    ad_spend = round(revenue * ad_spend_rates[channel] * random.uniform(0.85, 1.15), 2)
+                    roas = round(revenue / ad_spend, 2) if ad_spend else None
 
-        lead_to_customer = random.uniform(0.05, 0.22) * quality
-        customers = max(0, int(leads * lead_to_customer))
+                    rows.append({
+                        "year": year,
+                        "month_num": month_num,
+                        "month_name": month_name(month_num),
+                        "quarter": quarter(month_num),
+                        "month_start": f"{year}-{month_num:02d}-01",
+                        "channel": channel,
+                        "product_category": category,
+                        "region": region,
+                        "customer_segment": segment,
+                        "orders": orders,
+                        "units": units,
+                        "revenue": revenue,
+                        "cogs": cogs,
+                        "gross_profit": gross_profit,
+                        "gross_margin_pct": round(gross_margin_pct, 4),
+                        "ad_spend": ad_spend,
+                        "roas": roas,
+                    })
 
-        aov = avg_order_value(cname)
-        attributed_revenue = round(customers * aov * random.uniform(0.92, 1.12), 2)
+# Add prior month revenue and growth %
+rows.sort(key=lambda r: (
+    r["channel"],
+    r["product_category"],
+    r["region"],
+    r["customer_segment"],
+    r["year"],
+    r["month_num"],
+))
 
-        roas = round((attributed_revenue / spend), 2) if spend else 0
-        cac = round((spend / customers), 2) if customers else None
-        conversion_rate = round((customers / clicks), 4) if clicks else 0
-        lead_conversion_rate = round((leads / clicks), 4) if clicks else 0
+prior_map = {}
 
-        # recommendation fields
-        rec = recommendation(roas, spend, conversion_rate)
+for row in rows:
+    key = (row["channel"], row["product_category"], row["region"], row["customer_segment"])
+    prior_revenue = prior_map.get(key)
+    row["prior_month_revenue"] = round(prior_revenue, 2) if prior_revenue is not None else ""
 
-        rows.append({
-            "date": dt.isoformat(),
-            "year": dt.year,
-            "month_num": dt.month,
-            "month_name": dt.strftime("%b"),
-            "quarter": f"Q{((dt.month - 1) // 3) + 1}",
-            "campaign": cname,
-            "campaign_type": campaign_type(cname),
-            "channel": c["channel"],
-            "intent": c["intent"],
-            "region": c["region"],
-            "target_segment": target_segment(c["intent"]),
-            "spend": round(spend, 2),
-            "impressions": impressions,
-            "clicks": clicks,
-            "ctr": round((clicks / impressions), 4) if impressions else 0,
-            "cpc": round(cpc, 2),
-            "leads": leads,
-            "lead_conversion_rate": lead_conversion_rate,
-            "customers": customers,
-            "conversion_rate": conversion_rate,
-            "avg_order_value": round(aov, 2),
-            "attributed_revenue": attributed_revenue,
-            "roas": roas,
-            "cac": cac if cac is not None else "",
-            "recommendation": rec,
-        })
+    if prior_revenue in (None, 0):
+        row["revenue_growth_pct"] = ""
+    else:
+        row["revenue_growth_pct"] = round((row["revenue"] - prior_revenue) / prior_revenue, 4)
 
-# ---------------------------------
-# Write CSV
-# ---------------------------------
+    prior_map[key] = row["revenue"]
+
 fieldnames = [
-    "date",
     "year",
     "month_num",
     "month_name",
     "quarter",
-    "campaign",
-    "campaign_type",
+    "month_start",
     "channel",
-    "intent",
+    "product_category",
     "region",
-    "target_segment",
-    "spend",
-    "impressions",
-    "clicks",
-    "ctr",
-    "cpc",
-    "leads",
-    "lead_conversion_rate",
-    "customers",
-    "conversion_rate",
-    "avg_order_value",
-    "attributed_revenue",
+    "customer_segment",
+    "orders",
+    "units",
+    "revenue",
+    "prior_month_revenue",
+    "revenue_growth_pct",
+    "cogs",
+    "gross_profit",
+    "gross_margin_pct",
+    "ad_spend",
     "roas",
-    "cac",
-    "recommendation",
 ]
 
 with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
@@ -220,12 +203,4 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
     writer.writeheader()
     writer.writerows(rows)
 
-
-# ---------------------------------
-# Debug / sanity checks
-# ---------------------------------
-print("Total rows:", len(rows))
-print("Days generated (rows / campaigns):", len(rows) / len(campaigns))
-
-print("First date:", rows[0]["date"])
-print("Last date:", rows[-1]["date"])
+print(f"Wrote {len(rows):,} rows to {OUTPUT_FILE}")
