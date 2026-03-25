@@ -1,10 +1,10 @@
-﻿**Revenue Analytics Framework**
-
-**From Fragmented Data to Trusted Decision-Making**
+﻿# Revenue Analytics Framework
 
 End-to-end analytics framework for connecting marketing spend to revenue, with governed metrics, centralized data modeling, and executive-ready dashboards.
 
-**Overview**
+[**Tableau Dashboards**]([https://public.tableau.com/app/profile/vesper.annstas/vizzes]) 
+
+## Overview
 
 Many organizations operate with strong systems in isolation - marketing platforms, CRM, ERP - but struggle to **connect them into a single, trusted view of performance**.
 
@@ -15,7 +15,7 @@ This project demonstrates a practical approach to:
 - Eliminating conflicting reports and manual workflows
 - Enabling clear visibility into **marketing ROI and revenue drivers**
 
-**The Problem**
+## The Problem
 
 Organizations often face:
 
@@ -24,13 +24,13 @@ Organizations often face:
 - Conflicting KPI definitions across departments
 - Limited visibility into true marketing ROI
 
-**Impact:**
+### Impact:
 
 - Inefficient marketing spend
 - Missed revenue opportunities
 - Low trust in reporting
 
-**The Solution**
+## The Solution
 
 A **centralized, governed analytics foundation** that:
 
@@ -39,16 +39,16 @@ A **centralized, governed analytics foundation** that:
 - Connects marketing spend to revenue through consistent joins
 - Delivers trusted, executive-ready dashboards
 
-**Architecture Overview**
+## Architecture Overview
 
-**Current State**
+### Current State
 
 - Disconnected systems (Marketing, CRM, ERP)
 - Manual integration via Excel
 - Inconsistent joins (UTM, email, etc.)
 - Conflicting KPIs and low trust
 
-**Target State**
+### Target State
 
 - Centralized data layer
 - Governed joins and metric definitions
@@ -57,7 +57,7 @@ A **centralized, governed analytics foundation** that:
 
 _(See Data Flow Diagram in /docs or project files)_
 
-**90-Day Implementation Approach**
+## 90-Day Implementation Approach
 
 **Days 1-30: Understand & Map**
 
@@ -77,7 +77,7 @@ _(See Data Flow Diagram in /docs or project files)_
 - Reduce Excel-based workflows
 - Deliver executive dashboards
 
-**Core KPI Framework (MVP)**
+## Core KPI Framework (MVP)
 
 **Revenue**
 
@@ -100,7 +100,7 @@ _(See Data Flow Diagram in /docs or project files)_
 
 - Inventory Turnover
 
-**Data Governance Approach**
+## Data Governance Approach
 
 This framework emphasizes:
 
@@ -110,7 +110,7 @@ This framework emphasizes:
 
 Together, these ensure **trust, consistency, and usability**.
 
-**Dashboard Concepts**
+## Dashboard Concepts
 
 **Executive Performance Dashboard**
 
@@ -125,15 +125,16 @@ Together, these ensure **trust, consistency, and usability**.
 - Optimization recommendations (scale, reduce, test)
 
 **Repository Structure**
-
+```
 .  
 ├── data/ # Generated datasets (ignored in git)  
 ├── executive_data.py # Executive dashboard dataset generator  
 ├── marketing_data.py # Marketing ROI dataset generator  
 ├── docs/ # Diagrams, PDFs, and supporting materials  
 └── README.md
+```
 
-**Getting Started**
+## Getting Started
 
 **Generate Data**
 
@@ -146,7 +147,7 @@ python marketing_data.py
 - Connect to CSV
 - Build dashboards using provided schema
 
-**Guiding Principles**
+## Guiding Principles
 
 - Single source of truth for core metrics
 - Standardized definitions across teams
@@ -154,14 +155,14 @@ python marketing_data.py
 - Prioritize high-impact business questions
 - Build for **trust and usability**, not just accuracy
 
-**Expected Outcomes**
+## Expected Outcomes
 
 - Trusted, consistent reporting across departments
 - Reduced manual effort and data discrepancies
 - Clear visibility into marketing ROI
 - Faster, more confident decision-making
 
-**About**
+## About
 
 This project reflects a practical, business-focused approach to analytics - combining data engineering, BI, and governance to deliver **real decision-making value**, not just reporting.
 
