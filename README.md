@@ -2,7 +2,7 @@
 
 End-to-end analytics framework for connecting marketing spend to revenue, with governed metrics, centralized data modeling, and executive-ready dashboards.
 
-[**Tableau Dashboards**]([https://public.tableau.com/app/profile/vesper.annstas/vizzes]) 
+[**Tableau Dashboards**](https://public.tableau.com/app/profile/vesper.annstas/vizzes) 
 
 ## Overview
 
